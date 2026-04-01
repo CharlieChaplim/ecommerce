@@ -1,5 +1,10 @@
 package com.ecommerce.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ecommerce.dto.ClienteRequestDTO;
 import com.ecommerce.dto.ClienteResponseDTO;
 import com.ecommerce.exception.BusinessException;
@@ -7,10 +12,6 @@ import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.mapper.ClienteMapper;
 import com.ecommerce.model.Cliente;
 import com.ecommerce.repository.ClienteRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ClienteService {
@@ -29,7 +30,7 @@ public class ClienteService {
             throw new BusinessException("Email já cadastrado");
         }
         Cliente cliente = clienteMapper.toEntity(dto);
-        Cliente salvo = clienteRepository.save(cliente);
+        Cliente salvo = clienteRepository.saveAndFlush(cliente);
         return clienteMapper.toResponseDTO(salvo);
     }
 
@@ -55,8 +56,16 @@ public class ClienteService {
         cliente.setNome(dto.nome());
         cliente.setEmail(dto.email());
         
-        // Simples atualização de dados básicos para este exemplo
-        Cliente salvo = clienteRepository.save(cliente);
+        // Atualiza endereços se fornecidos
+        if (dto.enderecos() != null) {
+            cliente.getEnderecos().clear();
+            clienteRepository.saveAndFlush(cliente); // Garante a remoção dos órfãos antes de adicionar novos
+            dto.enderecos().forEach(e -> {
+                cliente.addEndereco(clienteMapper.toEnderecoEntity(e));
+            });
+        }
+        
+        Cliente salvo = clienteRepository.saveAndFlush(cliente);
         return clienteMapper.toResponseDTO(salvo);
     }
 
