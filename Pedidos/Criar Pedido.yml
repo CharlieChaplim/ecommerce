@@ -1,0 +1,35 @@
+info:
+  name: Criar Pedido
+  type: http
+  seq: 1
+
+http:
+  method: post
+  url: http://localhost:8080/pedidos
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "clienteId": 1,
+        "enderecoId": 1,
+        "itens": [
+          {
+            "produtoId": 1,
+            "quantidade": 1
+          },
+          {
+            "produtoId": 2,
+            "quantidade": 2
+          }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

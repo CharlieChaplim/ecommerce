@@ -1,0 +1,25 @@
+info:
+  name: Atualizar Cliente
+  type: http
+  seq: 4
+
+http:
+  method: put
+  url: http://localhost:8080/clientes/1
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "nome": "João Silva",
+        "email": "joao@email.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

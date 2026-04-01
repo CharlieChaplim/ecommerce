@@ -1,0 +1,25 @@
+info:
+  name: Email Duplicado
+  type: http
+  seq: 1
+
+http:
+  method: post
+  url: http://localhost:8080/clientes
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "nome": "Outro",
+        "email": "joao@email.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

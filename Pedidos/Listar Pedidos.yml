@@ -1,0 +1,15 @@
+info:
+  name: Listar Pedidos
+  type: http
+  seq: 2
+
+http:
+  method: get
+  url: http://localhost:8080/pedidos
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
