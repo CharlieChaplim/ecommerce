@@ -80,6 +80,7 @@ public class PedidoService {
         return pedidoMapper.toResponseDTO(salvo);
     }
 
+    @Transactional(readOnly = true)
     public Page<PedidoResponseDTO> listar(Long clienteId, Pageable pageable) {
         if (clienteId != null) {
             return pedidoRepository.findByClienteId(clienteId, pageable).map(pedidoMapper::toResponseDTO);
@@ -87,6 +88,7 @@ public class PedidoService {
         return pedidoRepository.findAll(pageable).map(pedidoMapper::toResponseDTO);
     }
 
+    @Transactional(readOnly = true)
     public PedidoResponseDTO buscarPorId(Long id) {
         return pedidoMapper.toResponseDTO(findById(id));
     }

@@ -1,6 +1,5 @@
 package com.ecommerce.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.dto.ClienteRequestDTO;
 import com.ecommerce.dto.ClienteResponseDTO;
+import com.ecommerce.dto.PageResponseDTO;
 import com.ecommerce.service.ClienteService;
 
 import jakarta.validation.Valid;
@@ -35,8 +35,8 @@ public class ClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ClienteResponseDTO>> listar(Pageable pageable) {
-        return ResponseEntity.ok(clienteService.listarTodos(pageable));
+    public ResponseEntity<PageResponseDTO<ClienteResponseDTO>> listar(Pageable pageable) {
+        return ResponseEntity.ok(PageResponseDTO.fromPage(clienteService.listarTodos(pageable)));
     }
 
     @GetMapping("/{id}")

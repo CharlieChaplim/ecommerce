@@ -33,10 +33,12 @@ public class ClienteService {
         return clienteMapper.toResponseDTO(salvo);
     }
 
+    @Transactional(readOnly = true)
     public Page<ClienteResponseDTO> listarTodos(Pageable pageable) {
         return clienteRepository.findAll(pageable).map(clienteMapper::toResponseDTO);
     }
 
+    @Transactional(readOnly = true)
     public ClienteResponseDTO buscarPorId(Long id) {
         Cliente cliente = findById(id);
         return clienteMapper.toResponseDTO(cliente);

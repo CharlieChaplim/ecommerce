@@ -28,10 +28,12 @@ public class ProdutoService {
         return produtoMapper.toResponseDTO(produtoRepository.save(produto));
     }
 
+    @Transactional(readOnly = true)
     public Page<ProdutoResponseDTO> listarTodos(Pageable pageable) {
         return produtoRepository.findAll(pageable).map(produtoMapper::toResponseDTO);
     }
 
+    @Transactional(readOnly = true)
     public ProdutoResponseDTO buscarPorId(Long id) {
         return produtoMapper.toResponseDTO(findById(id));
     }
