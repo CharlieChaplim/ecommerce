@@ -1,9 +1,6 @@
 package com.ecommerce.service;
 
-import com.ecommerce.dto.ProdutoRequestDTO;
-import com.ecommerce.dto.ProdutoResponseDTO;
 import com.ecommerce.exception.ResourceNotFoundException;
-import com.ecommerce.mapper.ProdutoMapper;
 import com.ecommerce.model.Produto;
 import com.ecommerce.repository.ProdutoRepository;
 import org.springframework.data.domain.Page;
@@ -15,36 +12,33 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
-    private final ProdutoMapper produtoMapper;
 
-    public ProdutoService(ProdutoRepository produtoRepository, ProdutoMapper produtoMapper) {
+    public ProdutoService(ProdutoRepository produtoRepository) {
         this.produtoRepository = produtoRepository;
-        this.produtoMapper = produtoMapper;
     }
 
     @Transactional
-    public ProdutoResponseDTO salvar(ProdutoRequestDTO dto) {
-        Produto produto = produtoMapper.toEntity(dto);
-        return produtoMapper.toResponseDTO(produtoRepository.save(produto));
+    public Produto salvar(Produto produto) {
+        return produtoRepository.save(produto);
     }
 
     @Transactional(readOnly = true)
-    public Page<ProdutoResponseDTO> listarTodos(Pageable pageable) {
-        return produtoRepository.findAll(pageable).map(produtoMapper::toResponseDTO);
+    public Page<Produto> listarTodos(Pageable pageable) {
+        return produtoRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public ProdutoResponseDTO buscarPorId(Long id) {
-        return produtoMapper.toResponseDTO(findById(id));
+    public Produto buscarPorId(Long id) {
+        return findById(id);
     }
 
     @Transactional
-    public ProdutoResponseDTO atualizar(Long id, ProdutoRequestDTO dto) {
+    public Produto atualizar(Long id, Produto produtoAtualizado) {
         Produto produto = findById(id);
-        produto.setNome(dto.nome());
-        produto.setPreco(dto.preco());
-        produto.setEstoque(dto.estoque());
-        return produtoMapper.toResponseDTO(produtoRepository.save(produto));
+        produto.setNome(produtoAtualizado.getNome());
+        produto.setPreco(produtoAtualizado.getPreco());
+        produto.setEstoque(produtoAtualizado.getEstoque());
+        return produtoRepository.save(produto);
     }
 
     @Transactional

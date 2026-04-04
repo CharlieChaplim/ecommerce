@@ -1,6 +1,9 @@
 package com.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 @Entity
 @Table(name = "enderecos")
@@ -10,15 +13,20 @@ public class Endereco {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Rua é obrigatória")
     @Column(nullable = false)
     private String rua;
 
+    @NotBlank(message = "Cidade é obrigatória")
     @Column(nullable = false)
     private String cidade;
 
+    @NotBlank(message = "CEP é obrigatório")
+    @Pattern(regexp = "\\d{5}-\\d{3}", message = "CEP inválido (formato: 00000-000)")
     @Column(nullable = false)
     private String cep;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;

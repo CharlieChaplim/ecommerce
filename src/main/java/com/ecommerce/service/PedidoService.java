@@ -1,11 +1,7 @@
 package com.ecommerce.service;
 
-import com.ecommerce.dto.AtualizacaoStatusPedidoDTO;
-import com.ecommerce.dto.PedidoRequestDTO;
-import com.ecommerce.dto.PedidoResponseDTO;
 import com.ecommerce.exception.BusinessException;
 import com.ecommerce.exception.ResourceNotFoundException;
-import com.ecommerce.mapper.PedidoMapper;
 import com.ecommerce.model.*;
 import com.ecommerce.repository.PedidoRepository;
 import com.ecommerce.repository.ProdutoRepository;
@@ -23,24 +19,21 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final ProdutoRepository produtoRepository;
     private final ClienteService clienteService;
-    private final PedidoMapper pedidoMapper;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          ProdutoRepository produtoRepository,
-                         ClienteService clienteService,
-                         PedidoMapper pedidoMapper) {
+                         ClienteService clienteService) {
         this.pedidoRepository = pedidoRepository;
         this.produtoRepository = produtoRepository;
         this.clienteService = clienteService;
-        this.pedidoMapper = pedidoMapper;
     }
 
     @Transactional
-    public PedidoResponseDTO criar(PedidoRequestDTO dto) {
-        Cliente cliente = clienteService.findById(dto.clienteId());
+    public Pedido criar(Pedido pedidoRequest) {
+        Cliente cliente = clienteService.findById(pedidoRequest.getCliente().getId());
         
         Endereco endereco = cliente.getEnderecos().stream()
-                .filter(e -> e.getId().equals(dto.enderecoId()))
+                .filter(e -> e.getId().equals(pedidoRequest.getEndereco().getId()))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("Endereço não pertence ao cliente informado"));
 
@@ -52,21 +45,21 @@ public class PedidoService {
 
         BigDecimal totalPedido = BigDecimal.ZERO;
 
-        for (var itemDTO : dto.itens()) {
-            Produto produto = produtoRepository.findById(itemDTO.produtoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + itemDTO.produtoId()));
+        for (ItemPedido itemRequest : pedidoRequest.getItens()) {
+            Produto produto = produtoRepository.findById(itemRequest.getProduto().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + itemRequest.getProduto().getId()));
 
-            if (produto.getEstoque() < itemDTO.quantidade()) {
+            if (produto.getEstoque() < itemRequest.getQuantidade()) {
                 throw new BusinessException("Estoque insuficiente para o produto: " + produto.getNome());
             }
 
             // Baixa estoque
-            produto.setEstoque(produto.getEstoque() - itemDTO.quantidade());
+            produto.setEstoque(produto.getEstoque() - itemRequest.getQuantidade());
             produtoRepository.save(produto);
 
             ItemPedido item = new ItemPedido();
             item.setProduto(produto);
-            item.setQuantidade(itemDTO.quantidade());
+            item.setQuantidade(itemRequest.getQuantidade());
             item.setPrecoUnitario(produto.getPreco()); // Captura preço atual
             
             pedido.addItem(item);
@@ -76,31 +69,29 @@ public class PedidoService {
         }
 
         pedido.setTotal(totalPedido);
-        Pedido salvo = pedidoRepository.save(pedido);
-        return pedidoMapper.toResponseDTO(salvo);
+        return pedidoRepository.save(pedido);
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponseDTO> listar(Long clienteId, Pageable pageable) {
+    public Page<Pedido> listar(Long clienteId, Pageable pageable) {
         if (clienteId != null) {
-            return pedidoRepository.findByClienteId(clienteId, pageable).map(pedidoMapper::toResponseDTO);
+            return pedidoRepository.findByClienteId(clienteId, pageable);
         }
-        return pedidoRepository.findAll(pageable).map(pedidoMapper::toResponseDTO);
+        return pedidoRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public PedidoResponseDTO buscarPorId(Long id) {
-        return pedidoMapper.toResponseDTO(findById(id));
+    public Pedido buscarPorId(Long id) {
+        return findById(id);
     }
 
     @Transactional
-    public PedidoResponseDTO atualizarStatus(Long id, AtualizacaoStatusPedidoDTO dto) {
+    public Pedido atualizarStatus(Long id, PedidoStatus novoStatus) {
         Pedido pedido = findById(id);
-        PedidoStatus novoStatus = dto.status();
         validarTransicaoStatus(pedido.getStatus(), novoStatus);
         
         pedido.setStatus(novoStatus);
-        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
+        return pedidoRepository.save(pedido);
     }
 
     @Transactional

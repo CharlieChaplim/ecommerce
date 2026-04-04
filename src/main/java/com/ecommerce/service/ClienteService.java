@@ -5,68 +5,67 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ecommerce.dto.ClienteRequestDTO;
-import com.ecommerce.dto.ClienteResponseDTO;
 import com.ecommerce.exception.BusinessException;
 import com.ecommerce.exception.ResourceNotFoundException;
-import com.ecommerce.mapper.ClienteMapper;
 import com.ecommerce.model.Cliente;
 import com.ecommerce.repository.ClienteRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
-    private final ClienteMapper clienteMapper;
 
-    public ClienteService(ClienteRepository clienteRepository, ClienteMapper clienteMapper) {
+    public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
-        this.clienteMapper = clienteMapper;
     }
 
     @Transactional
-    public ClienteResponseDTO salvar(ClienteRequestDTO dto) {
-        if (clienteRepository.existsByEmail(dto.email())) {
+    public Cliente salvar(Cliente cliente) {
+        if (clienteRepository.existsByEmail(cliente.getEmail())) {
             throw new BusinessException("Email já cadastrado");
         }
-        Cliente cliente = clienteMapper.toEntity(dto);
-        Cliente salvo = clienteRepository.saveAndFlush(cliente);
-        return clienteMapper.toResponseDTO(salvo);
+        // Configura bidirecionalidade dos endereços
+        if (cliente.getEnderecos() != null) {
+            cliente.getEnderecos().forEach(e -> e.setCliente(cliente));
+        }
+        return clienteRepository.saveAndFlush(cliente);
     }
 
     @Transactional(readOnly = true)
-    public Page<ClienteResponseDTO> listarTodos(Pageable pageable) {
-        return clienteRepository.findAll(pageable).map(clienteMapper::toResponseDTO);
+    public Page<Cliente> listarTodos(Pageable pageable) {
+        return clienteRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public ClienteResponseDTO buscarPorId(Long id) {
-        Cliente cliente = findById(id);
-        return clienteMapper.toResponseDTO(cliente);
+    public Cliente buscarPorId(Long id) {
+        return findById(id);
     }
 
     @Transactional
-    public ClienteResponseDTO atualizar(Long id, ClienteRequestDTO dto) {
+    public Cliente atualizar(Long id, Cliente clienteAtualizado) {
         Cliente cliente = findById(id);
         
-        if (!cliente.getEmail().equals(dto.email()) && clienteRepository.existsByEmail(dto.email())) {
+        if (!cliente.getEmail().equals(clienteAtualizado.getEmail()) && clienteRepository.existsByEmail(clienteAtualizado.getEmail())) {
             throw new BusinessException("Email já cadastrado");
         }
 
-        cliente.setNome(dto.nome());
-        cliente.setEmail(dto.email());
+        cliente.setNome(clienteAtualizado.getNome());
+        cliente.setEmail(clienteAtualizado.getEmail());
         
         // Atualiza endereços se fornecidos
-        if (dto.enderecos() != null) {
+        if (clienteAtualizado.getEnderecos() != null) {
             cliente.getEnderecos().clear();
-            clienteRepository.saveAndFlush(cliente); // Garante a remoção dos órfãos antes de adicionar novos
-            dto.enderecos().forEach(e -> {
-                cliente.addEndereco(clienteMapper.toEnderecoEntity(e));
+            clienteRepository.saveAndFlush(cliente);
+            clienteAtualizado.getEnderecos().forEach(e -> {
+                cliente.addEndereco(e);
             });
         }
         
-        Cliente salvo = clienteRepository.saveAndFlush(cliente);
-        return clienteMapper.toResponseDTO(salvo);
+        return clienteRepository.saveAndFlush(cliente);
     }
 
     @Transactional

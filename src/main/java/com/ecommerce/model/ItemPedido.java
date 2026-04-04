@@ -1,6 +1,10 @@
 package com.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -11,16 +15,21 @@ public class ItemPedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Quantidade é obrigatória")
+    @Min(value = 1, message = "Quantidade mínima é 1")
     @Column(nullable = false)
     private Integer quantidade;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(name = "preco_unitario", nullable = false)
     private BigDecimal precoUnitario;
 
+    @JsonIgnoreProperties({"itens", "cliente", "endereco"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id", nullable = false)
     private Pedido pedido;
 
+    @NotNull(message = "Produto é obrigatório")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;

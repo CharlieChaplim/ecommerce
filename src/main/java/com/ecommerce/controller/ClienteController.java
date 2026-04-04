@@ -1,23 +1,13 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.model.Cliente;
+import com.ecommerce.service.ClienteService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.ecommerce.dto.ClienteRequestDTO;
-import com.ecommerce.dto.ClienteResponseDTO;
-import com.ecommerce.dto.PageResponseDTO;
-import com.ecommerce.service.ClienteService;
-
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/clientes")
@@ -30,23 +20,23 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<ClienteResponseDTO> criar(@RequestBody @Valid ClienteRequestDTO dto) {
-        return new ResponseEntity<>(clienteService.salvar(dto), HttpStatus.CREATED);
+    public ResponseEntity<Cliente> criar(@RequestBody @Valid Cliente cliente) {
+        return new ResponseEntity<>(clienteService.salvar(cliente), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<PageResponseDTO<ClienteResponseDTO>> listar(Pageable pageable) {
-        return ResponseEntity.ok(PageResponseDTO.fromPage(clienteService.listarTodos(pageable)));
+    public ResponseEntity<Page<Cliente>> listar(Pageable pageable) {
+        return ResponseEntity.ok(clienteService.listarTodos(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClienteResponseDTO> buscar(@PathVariable Long id) {
+    public ResponseEntity<Cliente> buscar(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.buscarPorId(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClienteResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid ClienteRequestDTO dto) {
-        return ResponseEntity.ok(clienteService.atualizar(id, dto));
+    public ResponseEntity<Cliente> atualizar(@PathVariable Long id, @RequestBody @Valid Cliente cliente) {
+        return ResponseEntity.ok(clienteService.atualizar(id, cliente));
     }
 
     @DeleteMapping("/{id}")
